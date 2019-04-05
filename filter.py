@@ -24,9 +24,11 @@ def read_grids(name):
     grid.append(grid_data)
   return grid
 # Simple print test for output. Seems correct. 
-print(read_grids('melbGrid.json'))
 
 grid = read_grids('melbGrid.json')
+
+print(grid)
+
 # test_json = 'tinyTwitter.json'
 # f = open(test_json, 'r')
 
@@ -58,7 +60,8 @@ file = 'tinyTwitter.json'
 # print(x["value"]["properties"]["text"])
 
 
-# Considering the N core case: 
+# The us of Try--Except can skip those don't have coordinates. 
+# Later this can also skip those don't have Hash Tags. 
 def read_tweet_json(file):
   # First case when 1 node and 1 core
   coords = []
@@ -80,21 +83,43 @@ def read_tweet_json(file):
             coords.append(one_record)
           except:
             continue
-
-
-
-  # elif rank == 0: #Parallel 
-  #   with open(file, encoding = 'utf-8') as f:
-  #     for row in f:
-  #       try:
-  #         one_record = {}
-  #         one_json = json.loads(row[:-1])
-  #         one_record["latitude"] = one_json["value"]["geometry"]["coordinates"][0]
-  #         one_record["longtitude"] = 
-        
-
+  elif rank == 0: #Parallel. Need to split the loaded json into chunks(depends on how many cores you have. )
+    with open(file, encoding = 'utf-8') as f_:
+      for row in f_:
+        try:
+          one_record = {}
+          one_json = json.loads(row[:-2])
+          one_record["latitude"] = one_json["value"]["geometry"]["coordinates"][0]
+          one_record["longtitude"] = one_json["value"]["geometry"]["coordinates"][1]
+          coords.append(one_record)
+        except:
+          try:
+            one_record = {}
+            one_json = json.loads(row[:-1])
+            one_record["latitude"] = one_json["value"]["geometry"]["coordinates"][0]
+            one_record["longtitude"] = one_json["value"]["geometry"]["coordinates"][1]
+            coords.append(one_record)
+          except:
+            continue
+    coords = np.array_split(coords, size)
+  else:
+    coords = None
   return coords
+coords = read_tweet_json(file)
+# print(read_tweet_json(file))
 
-print(read_tweet_json(file))
+# Master:
+if size < 2 and rank ==0:
+  for e in coords:
+    divide_location_to_grids(grid, e["latitude"], e["longtitude"])
+    answer = grid
+else:  # slave node. Need to scatter task. 
+  coords = comm.scatter(coords, root=0)
+  for e in coords:
+    divide_location_to_grids(grid, e["latitude"], e["longtitude"])
+    a = comm.gather(coords, root=0)
+
+print(a)
+
 
         
