@@ -69,7 +69,7 @@ def read_tweet_json(file):
           one_record = {}
           one_json = json.loads(row[:-2])
           one_record["latitude"] = one_json["value"]["geometry"]["coordinates"][0]
-          one_record["longtitude"] = one_json["value"]["geometry"]     ["coordinates"][1]
+          one_record["longtitude"] = one_json["value"]["geometry"]["coordinates"][1]
           coords.append(one_record)
         except:
           continue
