@@ -72,7 +72,27 @@ def read_tweet_json(file):
           one_record["longtitude"] = one_json["value"]["geometry"]["coordinates"][1]
           coords.append(one_record)
         except:
-          continue
+          try: # Need to handle the last line. 
+            one_record = {}
+            one_json = json.loads(row[:-1])
+            one_record["latitude"] = one_json["value"]["geometry"]["coordinates"][0]
+            one_record["longtitude"] = one_json["value"]["geometry"]["coordinates"][1]
+            coords.append(one_record)
+          except:
+            continue
+
+
+
+  # elif rank == 0: #Parallel 
+  #   with open(file, encoding = 'utf-8') as f:
+  #     for row in f:
+  #       try:
+  #         one_record = {}
+  #         one_json = json.loads(row[:-1])
+  #         one_record["latitude"] = one_json["value"]["geometry"]["coordinates"][0]
+  #         one_record["longtitude"] = 
+        
+
   return coords
 
 print(read_tweet_json(file))
