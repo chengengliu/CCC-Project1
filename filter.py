@@ -46,7 +46,7 @@ def count_file_length():
 # For now, for simplicity reason, I will split the file into chunks naively, assuming that there is no mistakes in the file such that the line /n is correct. But I do believe that we have to handle the exception or at least try to handle the expception when new line character is not proper?
 # 或者说，要保证每一行的断行是完整的。 读到
 # chunks = file_length/ sise(number of processors),which is the size that a core should do. 
-def split_size(length, chunks):
+def split_and_read(length, chunks):
   # Each core should get the different start and end variable to process. 
   if rank != size -1:
     start = int(rank * chunks)
@@ -55,12 +55,26 @@ def split_size(length, chunks):
   else:
     start = int(rank * chunks)
     end = length
-  return [start, end]
+  with open('smallTwitter.json', encoding='utf-8') as file:
+    print("This is No.%d Rank and this is the start:%d"%(rank,start))
+    for e in range(0,start):
+      file.readline()
+    for e in range(start, end):
+      None
+
+  
 
 file_length = count_file_length()
 chunks = file_length/size
-partition = split_size(file_length, chunks)
-# print(partition)
+split_and_read(file_length, chunks)
+
+# partition = split_size(file_length, chunks)
+# print(partition[-1])
+
+# Main function, performing " #tag " extraction and coordinates extraction. 
+# def extract_information():
+#   with open('smallTwitter.json', encoding='utf-8') as file:
+#     for e in range(0, e)
 
 
 
