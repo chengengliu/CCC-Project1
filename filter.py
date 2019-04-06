@@ -1,10 +1,12 @@
 import json
 import numpy as np
 from mpi4py import MPI
+import time
 
 comm = MPI.COMM_WORLD
 size = comm.Get_size()
 rank = comm.Get_rank()
+start_time = time.time()
 
 def read_grids(name):
   grid = []
@@ -27,7 +29,7 @@ def read_grids(name):
 
 grid = read_grids('melbGrid.json')
 
-print(grid)
+# print(grid)
 
 # test_json = 'tinyTwitter.json'
 # f = open(test_json, 'r')
@@ -47,9 +49,7 @@ def divide_location_to_grids(grid, latitude, longtitude):
 
 
 
-# 目前有两种想法：
-# 第一种是 一行一行的读入，但是可能会慢。。
-# 第二种是 分成几个chunks 来读入。 
+
 
 # For now it is tinyTwitter.json. 
 file = 'tinyTwitter.json'
@@ -105,21 +105,32 @@ def read_tweet_json(file):
   else:
     coords = None
   return coords
+
 coords = read_tweet_json(file)
+
+# def split_reading():
+  
 # print(read_tweet_json(file))
 
 # Master:
 if size < 2 and rank ==0:
-  for e in coords:
-    divide_location_to_grids(grid, e["latitude"], e["longtitude"])
-    answer = grid
+  None
+  # for e in coords:
+  #   divide_location_to_grids(grid, e["latitude"], e["longtitude"])
+
 else:  # slave node. Need to scatter task. 
   coords = comm.scatter(coords, root=0)
   for e in coords:
     divide_location_to_grids(grid, e["latitude"], e["longtitude"])
-    a = comm.gather(coords, root=0)
+    new_coords = comm.gather(coords, root=0)
 
-print(a)
+# Used for testing purpose. 
+print(new_coords)
+
+f3 = open('output.txt', 'w')
+f3.write(str(time.time() - start_time))
+f3.write(str(new_coords))
+f3.close()
 
 
         
