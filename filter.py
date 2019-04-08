@@ -31,16 +31,18 @@ grid = read_grids('melbGrid.json')
 
 # Count file_length. The result is how many tweets there are. 
 # Big twiter has 250 0000 linee. 
-def count_file_length():
-    with open('bigTwitter_sample.json', 'r', encoding='utf-8') as f:
-      for line in f:
-        length = -2
-        while line:
-          length+=1
-          line = f.readline()
-        f.close()
-        return length
-print(count_file_length())
+# def count_file_length():
+#     with open('bigTwitter_sample.json', 'r', encoding='utf-8') as f:
+#       for line in f:
+#         length = -2
+#         while line:
+#           length+=1
+#           line = f.readline()
+#         f.close()
+#         return length
+def count_file_length(file):
+  return len(open(file,'r',encoding='utf-8').readlines())-2
+print(count_file_length('smallTwitter.json'))
 
 # 经度纬度： longtitude and latitude. 
 # longtitude 是 -180 到 180， latitude 是 -90 到 90.
@@ -100,12 +102,12 @@ def split_and_read(length, chunks):
         except:
           pass
         # Filter out the coordinates that are not in the grid. 
-        if(if_coor_in_grid(one_coord["latitude"],one_coord["longtitude"])):
+        if(if_coor_in_grid(one_coord["latitude"],one_coord["longtitude"])):#Erro
           coordinates.append(one_coord)
       # Special case for the last json.
       except:
         one_coord = {}
-        one_json = json.loads(json_content[:-1])
+        one_json = json.loads(json_content[:-1]) #Error 了
         try:
           one_coord["latitude"] = one_json["doc"]["coordinates"]["coordinates"][1]
           one_coord["longtitude"] = one_json["doc"]["coordinates"]["coordinates"][0]
@@ -146,7 +148,7 @@ def if_coor_in_grid(lat,long):
 
   
 
-file_length = count_file_length()
+file_length = count_file_length('bigTwitter_sample.json')
 chunks = file_length/size
 split_and_read(file_length, chunks)
 
