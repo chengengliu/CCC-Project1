@@ -9,5 +9,7 @@
 #SBATCH --mail-user=chengengl@student.unimelb.edu.au
 #SBATCH --mail-type=FAIL
 
+echo "1node1core"
+
 module load Python/3.6.4-intel-2017.u2-GCC-6.2.0-CUDA9
 time mpiexec python filter.py

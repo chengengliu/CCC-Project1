@@ -1,0 +1,56 @@
+Result:
+[('C2', 145096), ('B2', 79633), ('C3', 53299), ('B3', 26550), ('C4', 19699), ('B1', 16507), ('D4', 14497), ('D3', 13388), ('C1', 8427), ('B4', 5450), ('A3', 5036), ('A2', 4165), ('C5', 4106), ('D5', 3248), ('A1', 2533), ('A4', 310)]
+C2 : 145096  posts.
+Hashtags: 
+[('#Melbourne', 6594), ('#melbourne', 4558), ('#Jobs', 1293), ('#Job', 1124), ('#australia', 956)]
+B2 : 79633  posts.
+Hashtags: 
+[('#melbourne', 505), ('#Melbourne', 400), ('#auspol', 337), ('#Incident:', 283), ('#victraffic', 239)]
+C3 : 53299  posts.
+Hashtags: 
+[('#victraffic', 297), ('#melbourne', 296), ('#Incident:', 293), ('#Melbourne', 235), ('#FireAlarm:', 232)]
+B3 : 26550  posts.
+Hashtags: 
+[('#Incident:', 205), ('#StructureFire:', 177), ('#NonStructureFire:', 159), ('#FireAlarm:', 158), ('#victraffic', 139)]
+C4 : 19699  posts.
+Hashtags: 
+[('#auspol', 255), ('#StructureFire:', 179), ('#Incident:', 156), ('#SaveDallas', 148), ('#victraffic', 144)]
+B1 : 16507  posts.
+Hashtags: 
+[('#StructureFire:', 134), ('#NonStructureFire:', 128), ('#vote5sos', 106), ('#Melbourne', 105), ('#Incident:', 99)]
+D4 : 14497  posts.
+Hashtags: 
+[('#nowplaying', 1730), ('#KarishmaTannaCraze', 83), ('#victraffic', 79), ('#StructureFire:', 70), ('#AssistOtherAgency:', 49)]
+D3 : 13388  posts.
+Hashtags: 
+[('#victraffic', 63), ('#StructureFire:', 62), ('#beach', 60), ('#Incident:', 58), ('#melbourne', 53)]
+C1 : 8427  posts.
+Hashtags: 
+[('#Incident:', 99), ('#StructureFire:', 98), ('#CamTo4Mill', 73), ('#ChristmasFollowParty', 62), ('#FireAlarm:', 60)]
+B4 : 5450  posts.
+Hashtags: 
+[('#NonStructureFire:', 55), ('#StructureFire:', 49), ('#Incident:', 42), ('#SmallzyWelcomesHome5SOS', 27), ('#Hazmat:', 27)]
+A3 : 5036  posts.
+Hashtags: 
+[('#StructureFire:', 38), ('#RAW', 38), ('#NonStructureFire:', 30), ('#SaveConstantine', 26), ('#vicfires', 19)]
+A2 : 4165  posts.
+Hashtags: 
+[('#krazykristmas', 167), ('#NonStructureFire:', 72), ('#StructureFire:', 70), ('#rcl1milliongiveaway', 59), ('#EGsHolidayGiveaway', 57)]
+C5 : 4106  posts.
+Hashtags: 
+[('#melbourne', 36), ('#victraffic', 31), ('#photo', 20), ('#Melbourne', 17), ('#1000steps', 14)]
+D5 : 3248  posts.
+Hashtags: 
+[('#Lost', 28), ('#SomebodyToCon', 27), ('#Cat,', 25), ('#FindJasper', 21), ('#victraffic', 20)]
+A1 : 2533  posts.
+Hashtags: 
+[('#tattoo', 11), ('#VOBIS', 11), ('#worldjudo2014', 11), ('#BBAU', 10), ('#judo', 10)]
+A4 : 310  posts.
+Hashtags: 
+[('#auspol', 7), ('#LNP', 5), ('#libspill', 5), ('#qldvotes', 4), ('#photo', 3)]
+-------------------
+Tottal time is :  188.34626841545105
+
+real    3m8.501s
+user    3m3.711s
+sys     0m4.757s
