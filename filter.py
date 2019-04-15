@@ -42,7 +42,7 @@ grid = read_grids('melbGrid.json')
 #         return length
 def count_file_length(file):
   return len(open(file,'r',encoding='utf-8').readlines())-2
-print(count_file_length('smallTwitter.json'))
+print(count_file_length('bigTwitter.json'))
 
 # 经度纬度： longtitude and latitude. 
 # longtitude 是 -180 到 180， latitude 是 -90 到 90.
@@ -93,14 +93,14 @@ def split_and_read(length, chunks):
         one_coord = {}
         one_json = json.loads(json_content[:-2])
         # Deal with the case when the coordinates dont' exist. 
-        try:
-          one_coord["latitude"] = one_json["doc"]["coordinates"]["coordinates"][1]
-          one_coord["longtitude"] = one_json["doc"]["coordinates"]["coordinates"][0]
-          if one_coord["latitude"] == None or one_coord["longtitude"] == None:
-            one_coord["latitude"] = one_json["doc"]["geo"]["coordinates"][0]
-            one_coord["longtitude"] = one_json["doc"]["geo"]["coordinates"][1]
-        except:
-          pass
+        # try:
+        #   one_coord["latitude"] = one_json["doc"]["coordinates"]["coordinates"][1]
+        #   one_coord["longtitude"] = one_json["doc"]["coordinates"]["coordinates"][0]
+        #   if one_coord["latitude"] == None or one_coord["longtitude"] == None:
+        #     one_coord["latitude"] = one_json["doc"]["geo"]["coordinates"][0]
+        #     one_coord["longtitude"] = one_json["doc"]["geo"]["coordinates"][1]
+        # except:
+        #   pass
         # Filter out the coordinates that are not in the grid. 
         if(if_coor_in_grid(one_coord["latitude"],one_coord["longtitude"])):#Erro
           coordinates.append(one_coord)
@@ -108,15 +108,15 @@ def split_and_read(length, chunks):
       except:
         one_coord = {}
         one_json = json.loads(json_content[:-1]) #Error 了
-        try:
-          one_coord["latitude"] = one_json["doc"]["coordinates"]["coordinates"][1]
-          one_coord["longtitude"] = one_json["doc"]["coordinates"]["coordinates"][0]
-          # Test if one of the coordinate is not properly stored/corrupted, Try another way to get the coordinates. 
-          if one_coord["latitude"] == None or one_coord["longtitude"] == None:
-            one_coord["latitude"] = one_json["doc"]["geo"]["coordinates"][0]
-            one_coord["longtitude"] = one_json["doc"]["geo"]["coordinates"][1]
-        except:
-          pass
+        # try:
+        #   one_coord["latitude"] = one_json["doc"]["coordinates"]["coordinates"][1]
+        #   one_coord["longtitude"] = one_json["doc"]["coordinates"]["coordinates"][0]
+        #   # Test if one of the coordinate is not properly stored/corrupted, Try another way to get the coordinates. 
+        #   if one_coord["latitude"] == None or one_coord["longtitude"] == None:
+        #     one_coord["latitude"] = one_json["doc"]["geo"]["coordinates"][0]
+        #     one_coord["longtitude"] = one_json["doc"]["geo"]["coordinates"][1]
+        # except:
+        #   pass
         # Filter out the coordinates that are not in the grid. 
         if(if_coor_in_grid(one_coord["latitude"],one_coord["longtitude"])):
           coordinates.append(one_coord)
