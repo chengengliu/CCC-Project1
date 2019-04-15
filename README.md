@@ -10,6 +10,7 @@ There are two tasks as defined in the spec:</br>
 
 hashtag is defind in such pattern: "SPACE#STRINGSPACE"
 
+## General implementation ideas
 In this project, we used mpi4py, a library implementing MPI(Message Passing Interface). Using MPI is extremely helpful on multiple cores communication. Doing so will improve program efficiency if you write the code in a 'MPI' style </br>
 In order to understand our code, we highly recommand you to read some notes on MPI beforehand and understand some knowledge aobout master-slave programming tech. Basically we will have one process call master and the rest of processes(cores) will be the 'slaves' of that master core. </br>
 The master node will assign tasks to each slave node and collect the finished tasks from the slave cores. </br>
