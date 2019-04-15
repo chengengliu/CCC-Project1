@@ -1,108 +1,73 @@
-# Import mpi so we can run on more than one node and processor
+# COMP90024 Cluster and Cloud Computing 
+# Project 1 
+# Author: 
+# Chengeng Liu  Student ID : 813174
+# Xinze Li      Student ID : 964135
+
+# This program is to process and extract information from an 11 GB json file. 
+# The aim is to count the number of twitts within the given range(melbGrid.json)
+# and rank the hashtags in these grids. 
+# This program uses mpi4py as the core library. 
+# The bottleneck of the project is how to deal with io operation as the 
+# file is extremely large and it is not feasible to read it into memory as a 
+# whole. We adopted a master-slave approach and assign lines to different
+# nodes. After all nodes finish their jobs, the master node will collect the 
+# result and integrate them. This will utilize all cores and maximize the 
+# computability. 
+
+# Core library used in the program. 
 from mpi4py import MPI
-# Import regular expressions to look for topics and mentions, json to parse tweet data
-import re, json, operator
+# json parser and calculate time. 
+import json, operator,time
 
 
 MASTER_RANK = 0
-
-
-def getMelbGrid(input_file):
-  melbGrid={}
-  with open(input_file, 'r') as f:
-    data = json.load(f)
-    features=data['features']
-    for i, line in enumerate(features):
-      coordinatesList=[]
-      id=line['properties']['id']
-      coordinatesList.append(line['properties']['xmin'])
-      coordinatesList.append(line['properties']['xmax'])
-      coordinatesList.append(line['properties']['ymin'])
-      coordinatesList.append(line['properties']['ymax'])
-      melbGrid[id]=coordinatesList
-  return melbGrid
-
-# def distributeCoordinate(tweet,melbGrid):
-#   result={'A1':0,'A2':0,'A3':0,'A4':0,'B1':0,'B2':0,'B3':0,'B4':0,'C1':0,'C2':0,'C3':0,'C4':0,'C5':0,'D3':0,'D4':0,'D5':0}
-#   coordinates=tweet[0]
-#   hashtags=tweet[1]
-#   for coordinatesID,coordinates in coordinates.items():
-#     for cells,ranges in melbGrid.items():
-#       if (coordinates[0]>ranges[0] and coordinates[0]<=ranges[1]) and(coordinates[1]>ranges[2] and coordinates[1]<=ranges[3]):
-#         result[cells]+=1
-#   return result
-      
-
-# def countTweets(cellsAndHashtags):
-#   result={}
-#   for cells in cellsAndHashtags:
-#     if cells[0] in result.keys():
-#       result[cells[0]]+=1
-#     else:
-#       result[cells[0]]=1
-#   return result
-#result里面是{'A1':['Melbourne','fb'],'A2':['Melbourne','fb']}这种格式的
-#本函数的返回值为{'A1':[('Melbourne',100),('FB',99),...],'A2':[('Melbourne',100)]}里面的数据为元组类型
-# def countHashtags(cellsAndHashtags):
-#   result={}
-#   finalResult={}
-#   for cells in cellsAndHashtags:
-#     if cells[0] in result.keys():
-#       result[cells[0]].append(cells[1])
-#     else:
-#       result[cells[0]]=[cells[1]]
-
-#   for cell,hashtags in result.items():
-#     count={}
-#     for hashtag in hashtags:
-#       if hashtag in count.keys():
-#         count[hashtag]+=1
-#       else:
-#         count[hashtag]=0
-#     sortedCount=sorted(count.items(),key = lambda x:x[1],reverse = True)[:5]
-#     finalResult[cell]=sortedCount
-
-#   return finalResult
+TEN=10
+# initialise_grid function used to load melbGrid
+# 'Flag' indicates the use of the function, since the function
+# maybe used for result initialization as well as 
+# initializing hashtag calculation.
+def initialise_grid(flag):
+  f = open('melbGrid.json','r')
+  read_in = json.loads(f.read())
+  result= {}
+  for g in read_in['features']:
+    if flag == 'load':
+      result[g['properties']['id']] = [g['properties']['xmin'], g['properties']['xmax'], g['properties']['ymin'], g['properties']['ymax']]
+    if flag == 'result':
+      result[g['properties']['id']] = 0
+    if flag == 'hashtags':
+      result[g['properties']['id']] = {}
+  f.close()
+  return result
 
 def main():
   # Get
-  input_file = 'data/bigTwitter.json'
+  input_file = 'bigTwitter.json'
   # Work out our rank, and run either master or slave process
   comm = MPI.COMM_WORLD
   rank = comm.Get_rank()
+  start_time = time.time()
+  # Master node
   if rank == 0 :
-    # We are master
     master_tweet_processor(comm, input_file)
+  # Slave node
   else:
-    # We are slave
     slave_tweet_processor(comm, input_file)
 
-
-# def process_tweets(rank, input_file, processes):
-#   with open(input_file, 'r') as f:
-#     data = json.load(f)
-#     rows=data['rows']
-#     coordinates = {}
-#     hashtags={}
-#     # Send tweets to slave processes
-#     for i, line in enumerate(rows):
-#       if i%processes == rank:
-#         hashtag=[]
-#         id=line['id']
-#         coordinates[id] = line['value']['geometry']['coordinates']
-#         for x in line['doc']['entities']['hashtags']:
-#           hashtag.append(x['text'])
-#         hashtags[id]=hashtag
-#   return [coordinates,hashtags]
+# This is the main function that used to calculate coordinate and hashtages
+# The slave node will be assigned to process the line only when it should do 
+# so. A counter is used to assign the line reading job. 
 def process_tweets(rank, input_file, processes,melbGrid):
-  result={'A1':0,'A2':0,'A3':0,'A4':0,'B1':0,'B2':0,'B3':0,'B4':0,'C1':0,'C2':0,'C3':0,'C4':0,'C5':0,'D3':0,'D4':0,'D5':0}
-  hashtags={'A1':{},'A2':{},'A3':{},'A4':{},'B1':{},'B2':{},'B3':{},'B4':{},'C1':{},'C2':{},'C3':{},'C4':{},'C5':{},'D3':{},'D4':{},'D5':{}}
+  result=initialise_grid('result')
+  hashtags=initialise_grid('hashtags')
+
   f=open(input_file, 'r',encoding='utf-8')
   i=0
   for lines in f:
     if i%processes == rank:
       line=''
-      if i!=0 and len(lines)>10:
+      if i!=0 and len(lines)>TEN:
         if lines[-2]==",":
           line=lines[:-2]
         else:
@@ -112,46 +77,50 @@ def process_tweets(rank, input_file, processes,melbGrid):
         continue
       line=json.loads(line)
       countHashtages={}
-      # id=line['id']
       doc=line['doc']
       if isinstance(doc,dict):
         coordinates=line['doc']['coordinates']
         if isinstance(coordinates,dict):
           singalCoordinate=line['doc']['coordinates']['coordinates']
+          # Consider the case when the data is at the boundry of the grid
           if isinstance(singalCoordinate,list):
             cell='A0'
-            if singalCoordinate[1]==-37.5:
-              if singalCoordinate[0]>=144.7 and singalCoordinate[0]<=144.85:
+            if singalCoordinate[1]==melbGrid['A1'][3]:
+              if singalCoordinate[0]>=melbGrid['A1'][0] and singalCoordinate[0]<=melbGrid['A1'][1]:
                 cell='A1'
-              if singalCoordinate[0]>144.85 and singalCoordinate[0]<=145:
+              if singalCoordinate[0]>melbGrid['A2'][0] and singalCoordinate[0]<=melbGrid['A2'][1]:
                 cell='A2'
-              if singalCoordinate[0]>145 and singalCoordinate[0]<=145.15:
+              if singalCoordinate[0]>melbGrid['A3'][0] and singalCoordinate[0]<=melbGrid['A3'][1]:
                 cell='A3'
-              if singalCoordinate[0]>145.15 and singalCoordinate[0]<=145.3:
+              if singalCoordinate[0]>melbGrid['A4'][0] and singalCoordinate[0]<=melbGrid['A4'][1]:
                 cell='A4'
-            if singalCoordinate[0]==144.7:
-              if singalCoordinate[1]>=-37.95 and singalCoordinate[1]<-37.8:
+            if singalCoordinate[0]==melbGrid['C1'][0]:
+              if singalCoordinate[1]>=melbGrid['C1'][2] and singalCoordinate[1]<melbGrid['C1'][3]:
                 cell='C1'
-              if singalCoordinate[1]>=-37.8 and singalCoordinate[1]<-37.65:
+              if singalCoordinate[1]>=melbGrid['B1'][2] and singalCoordinate[1]<melbGrid['B1'][3]:
                 cell='B1'
-              if singalCoordinate[1]>=-37.65 and singalCoordinate[1]<=-37.5:
+              if singalCoordinate[1]>=melbGrid['A1'][2] and singalCoordinate[1]<=melbGrid['A1'][3]:
                 cell='A1'
-            if singalCoordinate[0]==145:
-              if singalCoordinate[1]>=-38.1 and singalCoordinate[1]<-37.95:
+            if singalCoordinate[0]==melbGrid['D3'][0]:
+              if singalCoordinate[1]>=melbGrid['D3'][2] and singalCoordinate[1]<melbGrid['D3'][3]:
                 cell='D3'
-            if singalCoordinate[1]==-37.8:
-              if singalCoordinate[0]>145.3 and singalCoordinate[0]<=145.45:
+            if singalCoordinate[1]==melbGrid['C5'][3]:
+              if singalCoordinate[0]>melbGrid['C5'][0] and singalCoordinate[0]<=melbGrid['C5'][1]:
                 cell='C5'
             if cell=='A0':
               for cells,ranges in melbGrid.items():
                 if ((singalCoordinate[0]>ranges[0]) and (singalCoordinate[0]<=ranges[1])) and ((singalCoordinate[1]>=ranges[2]) and (singalCoordinate[1]<ranges[3])):
+                  # hashtag way of extracting json data is depreciated. 
+                  # extracting from raw text is preferred. (secondHash)
                   hashtag=line['doc']['entities']['hashtags']
-                  if hashtag!=[]:
-                    for x in hashtag:
-                      if x['text'] in countHashtages.keys():
-                        countHashtages[x['text']]+=1
-                      else:
-                        countHashtages[x['text']]=1
+                  secondHash = line['doc']['text'].split()
+                  if secondHash:
+                    for word in secondHash:
+                      if word[0] == '#':
+                        if word in countHashtages.keys():
+                          countHashtages[word] +=1
+                        else:
+                          countHashtages[word] = 1
                   for k,v in countHashtages.items():
                     if k in hashtags[cells]:
                       hashtags[cells][k]+=1
@@ -161,20 +130,19 @@ def process_tweets(rank, input_file, processes,melbGrid):
             else:
               result[cell]+=1
               hashtag=line['doc']['entities']['hashtags']
-              if hashtag!=[]:
-                for x in hashtag:
-                  if x['text'] in countHashtages.keys():
-                    countHashtages[x['text']]+=1
-                  else:
-                    countHashtages[x['text']]=1
+              secondHash = line['doc']['text'].split()
+              if secondHash:
+                    for word in secondHash:
+                      if word[0] == '#':
+                        if word in countHashtages.keys():
+                          countHashtages[word] +=1
+                        else:
+                          countHashtages[word] = 1
               for k,v in countHashtages.items():
                 if k in hashtags[cell]:
                   hashtags[cell][k]+=1
                 else:
                   hashtags[cell][k]=1
-        # for x in line['doc']['entities']['hashtags']:
-        #   hashtag.append(x['text'])
-        # hashtags[id]=hashtag
     i=i+1
   return [result,hashtags]
 
@@ -190,11 +158,13 @@ def marshall_tweets(comm):
     counts.append(comm.recv(source=(i+1), tag=MASTER_RANK))
   return counts
 
+# Master node is responsible for collecting and integrating all data from 
+# each node and printing out the final result. 
 def master_tweet_processor(comm, input_file):
     # Read our tweets
     rank = comm.Get_rank()
     size = comm.Get_size()
-    melbGrid=getMelbGrid('melbGrid.json')
+    melbGrid= initialise_grid('load')
     result=process_tweets(rank, input_file,size,melbGrid)
     coordinates=result[0]
     hashtags=result[1]
@@ -225,10 +195,19 @@ def master_tweet_processor(comm, input_file):
         hashtags[k]=sorted(v.items(),key = lambda x:x[1],reverse = True)[:5]
 
     # Print output
-    print(coordinates)
-    print('-------------------')
-    print(hashtags)
 
+    # Print out the result based on block.
+    print("Result:")
+    sorted_coordinates = sorted(coordinates.items(), key=lambda kv: kv[1])
+    sorted_coordinates.reverse()
+    print(sorted_coordinates)
+    for i in sorted_coordinates:
+      print(i[0],":",i[1]," posts.")
+      print("Hashtags: ")
+      print(hashtags.get(i[0]))
+    print('-------------------')
+
+# A slave node will always be ready to receive data and tasks
 def slave_tweet_processor(comm,input_file):
   # We want to process all relevant tweets and send our counts back
   # to master when asked
@@ -236,7 +215,7 @@ def slave_tweet_processor(comm,input_file):
   rank = comm.Get_rank()
   size = comm.Get_size()
 
-  melbGrid=getMelbGrid('melbGrid.json')
+  melbGrid = initialise_grid ('load')
   result=process_tweets(rank, input_file,size,melbGrid)
 
   # Now that we have our counts then wait to see when we return them.
@@ -246,10 +225,12 @@ def slave_tweet_processor(comm,input_file):
     if isinstance(in_comm, str):
       if in_comm in ("return_data"):
         # Send data back
-        # print("Process: ", rank, " sending back ", len(counts), " items")
         comm.send(result, dest=MASTER_RANK, tag=MASTER_RANK)
       elif in_comm in ("exit"):
         exit(0)
+        
 # Run the actual program
 if __name__ == "__main__":
+  start_time = time.time()
   main()
+  print("Tottal time is : ", str(time.time()-start_time))
