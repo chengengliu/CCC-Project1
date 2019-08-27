@@ -20,4 +20,5 @@ We pre-filter the data before stored the data into memory. </br>
 There are 2.5 million of lines in the file but after filtering out noise data, there are only 0.4 million of lines remaining. </br>
 However, do know that this is not the fastest way of doing MPI. 
 Another way is to split the file into chunks and let different cores read in 1/8 of the total file. We thought about the method but it is bit time consuming using some file pointers thus we just gave up. Another way instead of json.loads is using regular expression but our professor discourages to do so. 
-
+## More
+The project receives 8.5/10, with a full mark of correctness and efficiency(the program finishes generally within 60 seconds), but deducted marks for code cleaness/documentation and report quality. 
